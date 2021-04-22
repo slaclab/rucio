@@ -75,6 +75,7 @@ def has_permission(issuer, action, kwargs):
             'reduce_rule': perm_reduce_rule,
             'move_rule': perm_move_rule,
             'get_auth_token_user_pass': perm_get_auth_token_user_pass,
+            'get_auth_token_ssh': perm_get_auth_token_ssh,
             'get_auth_token_gss': perm_get_auth_token_gss,
             'get_auth_token_x509': perm_get_auth_token_x509,
             'get_auth_token_saml': perm_get_auth_token_saml,
@@ -284,6 +285,19 @@ def perm_get_auth_token_user_pass(issuer, kwargs):
     if exist_identity_account(identity=kwargs['username'], type_=IdentityType.USERPASS, account=kwargs['account']):
         return True
     return False
+
+
+def perm_get_auth_token_ssh(issuer, kwargs):
+    """
+    Checks if a user can request a token with ssh for an account.
+
+    :param issuer: Account identifier which issues the command.
+    :param kwargs: List of arguments for the action.
+    :returns: True if account is allowed, otherwise False
+    """
+    if kwargs['signature'] is None or kwargs['account'] is None:
+        return False
+    return True
 
 
 def perm_get_auth_token_gss(issuer, kwargs):
