@@ -224,7 +224,7 @@ def get_auth_token_ssh(account, signature, appid, ip=None, session=None):
         pub_k = paramiko.RSAKey(data=b64decode(data))
         for challenge_token in active_challenge_tokens:
             if pub_k.verify_ssh_sig(str(challenge_token['token']).encode(),
-                                    paramiko.Message(signature)):
+                                    paramiko.Message(b64decode(signature))):
                 match = True
                 break
         if match:
