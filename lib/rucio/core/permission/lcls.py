@@ -1,4 +1,4 @@
-# Copyright 2016-2020 CERN for the benefit of the ATLAS collaboration.
+# Copyright 2021 SLAC National Accelerator Laboratory for the benefit of the LCLS collaboration.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +13,7 @@
 # limitations under the License.
 #
 # Authors:
-# - Vincent Garonne <vgaronne@gmail.com>, 2016
-# - Cedric Serfon <cedric.serfon@cern.ch>, 2016-2021
-# - Martin Barisits <martin.barisits@cern.ch>, 2017-2020
-# - Mario Lassnig <mario.lassnig@cern.ch>, 2018-2020
-# - Hannes Hansen <hannes.jakob.hansen@cern.ch>, 2018-2019
-# - Andrew Lister <andrew.lister@stfc.ac.uk>, 2019
-# - Ruturaj Gujar <ruturaj.gujar23@gmail.com>, 2019
-# - Eric Vaandering, <ewv@fnal.gov>, 2020
-# - Benedikt Ziemons <benedikt.ziemons@cern.ch>, 2020
-# - Eli Chadwick <eli.chadwick@stfc.ac.uk>, 2020
-# - Patrick Austin <patrick.austin@stfc.ac.uk>, 2020
+# - Kenny Lo <kennylo@slac.stanford.edu>, 2021
 #
 # PY3K COMPATIBLE
 
@@ -75,6 +65,7 @@ def has_permission(issuer, action, kwargs):
             'reduce_rule': perm_reduce_rule,
             'move_rule': perm_move_rule,
             'get_auth_token_user_pass': perm_get_auth_token_user_pass,
+            'get_auth_token_ssh': perm_get_auth_token_ssh,
             'get_auth_token_gss': perm_get_auth_token_gss,
             'get_auth_token_x509': perm_get_auth_token_x509,
             'get_auth_token_saml': perm_get_auth_token_saml,
@@ -121,8 +112,7 @@ def has_permission(issuer, action, kwargs):
             'del_account_identity': perm_del_account_identity,
             'del_identity': perm_del_identity,
             'remove_did_from_followed': perm_remove_did_from_followed,
-            'remove_dids_from_followed': perm_remove_dids_from_followed,
-            'export': perm_export}
+            'remove_dids_from_followed': perm_remove_dids_from_followed}
 
     return perm.get(action, perm_default)(issuer=issuer, kwargs=kwargs)
 
@@ -281,9 +271,22 @@ def perm_get_auth_token_user_pass(issuer, kwargs):
     :param kwargs: List of arguments for the action.
     :returns: True if account is allowed, otherwise False
     """
-    if exist_identity_account(identity=kwargs['username'], type_=IdentityType.USERPASS, account=kwargs['account']):
+    if exist_identity_account(identity=kwargs['username'], type=IdentityType.USERPASS, account=kwargs['account']):
         return True
     return False
+
+
+def perm_get_auth_token_ssh(issuer, kwargs):
+    """
+    Checks if a user can request a token with ssh for an account.
+
+    :param issuer: Account identifier which issues the command.
+    :param kwargs: List of arguments for the action.
+    :returns: True if account is allowed, otherwise False
+    """
+    if kwargs['signature'] is None or kwargs['account'] is None:
+        return False
+    return True
 
 
 def perm_get_auth_token_gss(issuer, kwargs):
@@ -294,7 +297,7 @@ def perm_get_auth_token_gss(issuer, kwargs):
     :param kwargs: List of arguments for the action.
     :returns: True if account is allowed, otherwise False
     """
-    if exist_identity_account(identity=kwargs['gsscred'], type_=IdentityType.GSS, account=kwargs['account']):
+    if exist_identity_account(identity=kwargs['gsscred'], type=IdentityType.GSS, account=kwargs['account']):
         return True
     return False
 
@@ -307,7 +310,7 @@ def perm_get_auth_token_x509(issuer, kwargs):
     :param kwargs: List of arguments for the action.
     :returns: True if account is allowed, otherwise False
     """
-    if exist_identity_account(identity=kwargs['dn'], type_=IdentityType.X509, account=kwargs['account']):
+    if exist_identity_account(identity=kwargs['dn'], type=IdentityType.X509, account=kwargs['account']):
         return True
     return False
 
@@ -320,7 +323,7 @@ def perm_get_auth_token_saml(issuer, kwargs):
     :param kwargs: List of arguments for the action.
     :returns: True if account is allowed, otherwise False
     """
-    if exist_identity_account(identity=kwargs['saml_nameid'], type_=IdentityType.SAML, account=kwargs['account']):
+    if exist_identity_account(identity=kwargs['saml_nameid'], type=IdentityType.SAML, account=kwargs['account']):
         return True
     return False
 
@@ -801,7 +804,7 @@ def perm_set_global_account_limit(issuer, kwargs):
     for kv in list_account_attributes(account=issuer):
         if kv['key'].startswith('country-') and kv['value'] == 'admin':
             admin_in_country.add(kv['key'].partition('-')[2])
-    resolved_rse_countries = {list_rse_attributes(rse_id=rse['rse_id']).get('country') for rse in parse_expression(kwargs['rse_expression'], filter_={'vo': issuer.vo})}
+    resolved_rse_countries = {list_rse_attributes(rse_id=rse['rse_id']).get('country') for rse in parse_expression(kwargs['rse_expression'], filter={'vo': issuer.vo})}
     if resolved_rse_countries.issubset(admin_in_country):
         return True
     return False
@@ -843,7 +846,7 @@ def perm_delete_global_account_limit(issuer, kwargs):
         if kv['key'].startswith('country-') and kv['value'] == 'admin':
             admin_in_country.add(kv['key'].partition('-')[2])
     if admin_in_country:
-        resolved_rse_countries = {list_rse_attributes(rse_id=rse['rse_id']).get('country') for rse in parse_expression(kwargs['rse_expression'], filter_={'vo': issuer.vo})}
+        resolved_rse_countries = {list_rse_attributes(rse_id=rse['rse_id']).get('country') for rse in parse_expression(kwargs['rse_expression'], filter={'vo': issuer.vo})}
         if resolved_rse_countries.issubset(admin_in_country):
             return True
     return False
@@ -1011,14 +1014,3 @@ def perm_remove_dids_from_followed(issuer, kwargs):
     if not kwargs['account'] == issuer:
         return False
     return True
-
-
-def perm_export(issuer, kwargs):
-    """
-    Checks if an account can export the RSE info.
-
-    :param issuer: Account identifier which issues the command.
-    :param kwargs: List of arguments for the action.
-    :returns: True if account is allowed, otherwise False
-    """
-    return _is_root(issuer)
