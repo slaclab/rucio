@@ -515,6 +515,50 @@ def construct_surl_T0(dsn, filename):
         return '/other/other/other/other/%s' % (filename)
 
 
+def construct_surl_LCLS_SLAC(dsn, filename):
+    """
+    Defines relative SURL for HPSS tape replicas at SLAC. This method
+    contains LCLS convention. To be used for non-deterministic sites.
+
+    @param: dsn as dataset name of format <instrument>.<experiment>.xtc.<run-nr>
+    @return: relative SURL for new replica.
+    @rtype: str
+    """
+    fields = dsn.split('.')
+    nfields = len(fields)
+    _filename = filename.strip('xtc.')
+    if nfields >= 3:
+        return '/%s/%s/%s/%s' % (fields[0], fields[2], fields[1], _filename)
+    elif nfields == 1:
+        return '/%s/%s/%s/%s' % (fields[0], 'other', 'other', _filename)
+    elif nfields == 2:
+        return '/%s/%s/%s/%s' % (fields[0], fields[2], 'other', _filename)
+    elif nfields == 0:
+        return '/other/other/other/%s' % (_filename)
+
+
+def construct_surl_LCLS_NERSC(dsn, filename):
+    """
+    Defines relative SURL for HPSS tape replicas at NERSC. This method
+    contains LCLS convention. To be used for non-deterministic sites.
+
+    @param: dsn as dataset name of format <instrument>.<experiment>.xtc.<run-nr>
+    @return: relative SURL for new replica.
+    @rtype: str
+    """
+    fields = dsn.split('.')
+    nfields = len(fields)
+    _filename = filename.strip('xtc.')
+    if nfields >= 3:
+        return '/%s/%s/%s/%s' % (fields[0], fields[1], fields[2], _filename)
+    elif nfields == 1:
+        return '/%s/%s/%s/%s' % (fields[0], 'other', 'other', _filename)
+    elif nfields == 2:
+        return '/%s/%s/%s/%s' % (fields[0], fields[1], 'other', _filename)
+    elif nfields == 0:
+        return '/other/other/other/%s' % (_filename)
+
+
 def construct_surl_BelleII(dsn, filename):
     """
     Defines relative SURL for Belle II specific replicas.
@@ -533,7 +577,7 @@ def construct_surl_BelleII(dsn, filename):
 
 
 _SURL_ALGORITHMS = {}
-_DEFAULT_SURL = 'DQ2'
+_DEFAULT_SURL = 'LCLS_SLAC'
 _loaded_policy_modules = False
 
 
@@ -546,6 +590,8 @@ def register_surl_algorithm(surl_callable, name=None):
 register_surl_algorithm(construct_surl_T0, 'T0')
 register_surl_algorithm(construct_surl_DQ2, 'DQ2')
 register_surl_algorithm(construct_surl_BelleII, 'BelleII')
+register_surl_algorithm(construct_surl_LCLS_SLAC, 'LCLS_SLAC')
+register_surl_algorithm(construct_surl_LCLS_NERSC, 'LCLS_NERSC')
 
 
 def _register_policy_package_surl_algorithms():
