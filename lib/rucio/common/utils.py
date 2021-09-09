@@ -514,6 +514,22 @@ def construct_surl_T0(dsn, filename):
     elif nfields == 0:
         return '/other/other/other/other/%s' % (filename)
 
+def construct_surl_LCLS(dsn, filename):
+    """
+    Defines relative SURL for replicas. This method uses the LCLS convention 
+    for xtc files. To be used for non-deterministic sites.
+
+    @param: dsn as dataset name of format <instrument>.<experiment>.xtc.<run-nr>
+    @return: relative SURL for new replica.
+    @rtype: str
+    """
+
+    instr, expt, fld, remain = filename.split('.', 3)
+
+    if fld == 'xtc' and filename.endswith('smd.xtc'):
+        return '/%s/%s/xtc/smalldata/%s' % (instr, expt, remain)
+
+    return '/%s/%s/%s/%s' % (instr, expt, fld, remain)
 
 def construct_surl_LCLS_SLAC(dsn, filename):
     """
@@ -590,6 +606,7 @@ def register_surl_algorithm(surl_callable, name=None):
 register_surl_algorithm(construct_surl_T0, 'T0')
 register_surl_algorithm(construct_surl_DQ2, 'DQ2')
 register_surl_algorithm(construct_surl_BelleII, 'BelleII')
+register_surl_algorithm(construct_surl_LCLS, 'LCLS')
 register_surl_algorithm(construct_surl_LCLS_SLAC, 'LCLS_SLAC')
 register_surl_algorithm(construct_surl_LCLS_NERSC, 'LCLS_NERSC')
 
