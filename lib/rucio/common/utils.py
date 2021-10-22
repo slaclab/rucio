@@ -514,9 +514,10 @@ def construct_surl_T0(dsn, filename):
     elif nfields == 0:
         return '/other/other/other/other/%s' % (filename)
 
+
 def construct_surl_LCLS(dsn, filename):
     """
-    Defines relative SURL for replicas. This method uses the LCLS convention 
+    Defines relative SURL for replicas. This method uses the LCLS convention
     for xtc files. To be used for non-deterministic sites.
 
     @param: dsn as dataset name of format <instrument>.<experiment>.xtc.<run-nr>
@@ -524,55 +525,20 @@ def construct_surl_LCLS(dsn, filename):
     @rtype: str
     """
 
-    instr, expt, fld, remain = filename.split('.', 3)
+    try:
+        instr, expt, fld, remain = filename.split('.', 3)
+    except ValueError:
+        use_hash = True
+    else:
+        use_hash = False if fld in ('xtc', 'hdf5') else True
 
-    if fld == 'xtc' and filename.endswith('smd.xtc'):
-        return '/%s/%s/xtc/smalldata/%s' % (instr, expt, remain)
-
-    return '/%s/%s/%s/%s' % (instr, expt, fld, remain)
-
-def construct_surl_LCLS_SLAC(dsn, filename):
-    """
-    Defines relative SURL for HPSS tape replicas at SLAC. This method
-    contains LCLS convention. To be used for non-deterministic sites.
-
-    @param: dsn as dataset name of format <instrument>.<experiment>.xtc.<run-nr>
-    @return: relative SURL for new replica.
-    @rtype: str
-    """
-    fields = dsn.split('.')
-    nfields = len(fields)
-    _filename = filename.strip('xtc.')
-    if nfields >= 3:
-        return '/%s/%s/%s/%s' % (fields[0], fields[2], fields[1], _filename)
-    elif nfields == 1:
-        return '/%s/%s/%s/%s' % (fields[0], 'other', 'other', _filename)
-    elif nfields == 2:
-        return '/%s/%s/%s/%s' % (fields[0], fields[2], 'other', _filename)
-    elif nfields == 0:
-        return '/other/other/other/%s' % (_filename)
-
-
-def construct_surl_LCLS_NERSC(dsn, filename):
-    """
-    Defines relative SURL for HPSS tape replicas at NERSC. This method
-    contains LCLS convention. To be used for non-deterministic sites.
-
-    @param: dsn as dataset name of format <instrument>.<experiment>.xtc.<run-nr>
-    @return: relative SURL for new replica.
-    @rtype: str
-    """
-    fields = dsn.split('.')
-    nfields = len(fields)
-    _filename = filename.strip('xtc.')
-    if nfields >= 3:
-        return '/%s/%s/%s/%s' % (fields[0], fields[1], fields[2], _filename)
-    elif nfields == 1:
-        return '/%s/%s/%s/%s' % (fields[0], 'other', 'other', _filename)
-    elif nfields == 2:
-        return '/%s/%s/%s/%s' % (fields[0], fields[1], 'other', _filename)
-    elif nfields == 0:
-        return '/other/other/other/%s' % (_filename)
+    if use_hash:
+        md5 = hashlib.md5(filename.encode()).hexdigest()
+        return '/hash/%s/%s' % (md5[:2], md5[2:])
+    else:
+        if fld == 'xtc' and filename.endswith('smd.xtc'):
+            return '/%s/%s/xtc/smalldata/%s' % (instr, expt, remain)
+        return '/%s/%s/%s/%s' % (instr, expt, fld, remain)
 
 
 def construct_surl_BelleII(dsn, filename):
