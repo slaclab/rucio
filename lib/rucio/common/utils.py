@@ -534,7 +534,7 @@ def construct_surl_LCLS(dsn, filename):
 
     if use_hash:
         md5 = hashlib.md5(filename.encode()).hexdigest()
-        return '/hash/%s/%s' % (md5[:2], md5[2:])
+        return '/hash/%s/%s' % (md5[:3], filename)
     else:
         if fld == 'xtc' and filename.endswith('smd.xtc'):
             return '/%s/%s/xtc/smalldata/%s' % (instr, expt, remain)
