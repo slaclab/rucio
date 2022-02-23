@@ -441,13 +441,13 @@ class RSEProtocol(object):
             if self.attributes['port'] != port:
                 raise exception.RSEFileNameNotSupported('Invalid port: provided \'%s\', expected \'%s\'' % (port, self.attributes['port']))
 
-            if not path.startswith(self.attributes['prefix']):
+            prefix = self.attributes['prefix'].replace('//', '/')
+            if not path.startswith(prefix):
                 raise exception.RSEFileNameNotSupported('Invalid prefix: provided \'%s\', expected \'%s\'' % ('/'.join(path.split('/')[0:len(self.attributes['prefix'].split('/')) - 1]),
                                                                                                               self.attributes['prefix']))  # len(...)-1 due to the leading '/
 
             # Spliting parsed.path into prefix, path, filename
-            prefix = self.attributes['prefix']
-            path = path.partition(self.attributes['prefix'])[2]
+            path = path.partition(prefix)[2]
             name = path.split('/')[-1]
             path = '/'.join(path.split('/')[:-1])
             if not path.startswith('/'):
