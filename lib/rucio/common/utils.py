@@ -559,7 +559,7 @@ def construct_surl_BelleII(dsn, filename):
 
 
 _SURL_ALGORITHMS = {}
-_DEFAULT_SURL = 'LCLS_SLAC'
+_DEFAULT_SURL = 'LCLS'
 _loaded_policy_modules = False
 
 
@@ -573,8 +573,6 @@ register_surl_algorithm(construct_surl_T0, 'T0')
 register_surl_algorithm(construct_surl_DQ2, 'DQ2')
 register_surl_algorithm(construct_surl_BelleII, 'BelleII')
 register_surl_algorithm(construct_surl_LCLS, 'LCLS')
-register_surl_algorithm(construct_surl_LCLS_SLAC, 'LCLS_SLAC')
-register_surl_algorithm(construct_surl_LCLS_NERSC, 'LCLS_NERSC')
 
 
 def _register_policy_package_surl_algorithms():
